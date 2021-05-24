@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "github.com/mikekutzma/hackathon/cakebox/cakebox";
+
+package cakebox;
+
+// The greeting service definition.
+service CakeBox {
+  // Sends a greeting
+  rpc UserFromBirthday (Birthday) returns (User) {}
+  rpc UsersFromBirthday (Birthday) returns (stream User) {}
+  rpc BirthdayFromUser (User) returns (Birthday) {}
+}
+
+message Birthday {
+  int64 month = 1;
+  int64 day = 2;
+}
+
+message User {
+  string name = 1;
+}
