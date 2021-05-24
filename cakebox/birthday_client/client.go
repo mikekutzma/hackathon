@@ -3,6 +3,9 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,34 +15,60 @@ import (
 
 	pb "github.com/mikekutzma/hackathon/cakebox/cakebox"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
-const (
-	address      = "localhost:50051"
-	defaultMonth = 4
-	defaultDay   = 6
+var (
+	defaultPort   = getEnv("PORT", "50051")
+	grpcEndpoint  = flag.String("grpc-endpoint", fmt.Sprintf("localhost:%s", defaultPort), "The gRPC Endpoint of the Server")
+	inputBirthday = flag.String("date", "", "Birthday to get users, formatted as m/d")
+	noTLS         = flag.Bool("no-tls", false, "Flag to disable TLS (use this for requests to localhost container)")
 )
+
+// Helper function to get env variable with a default
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
+}
 
 func main() {
+	flag.Parse()
+	if *inputBirthday == "" {
+		log.Fatal("Must specify --date input arg of format m/d")
+	}
+
+	// Set up connection options
+	opts := []grpc.DialOption{
+		grpc.WithBlock(),
+	}
+
+	if *noTLS {
+		opts = append(opts, grpc.WithInsecure())
+	} else {
+		creds := credentials.NewTLS(&tls.Config{
+			InsecureSkipVerify: true,
+		})
+		opts = append(opts, grpc.WithTransportCredentials(creds))
+	}
+
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(*grpcEndpoint, opts...)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Fatalf("Did not connect: %v", err)
 	}
 	defer conn.Close()
 	c := pb.NewCakeBoxClient(conn)
 
 	// Parse input arguments
-	month := defaultMonth
-	day := defaultDay
-	if len(os.Args) > 1 {
-		dateParts := strings.Split(os.Args[1], "/")
-		if len(dateParts) < 2 {
-			log.Fatalf("Invalid date %s, should be in format m/d", os.Args[1])
-		}
-		month, _ = strconv.Atoi(dateParts[0])
-		day, _ = strconv.Atoi(dateParts[1])
+	dateParts := strings.Split(*inputBirthday, "/")
+	if len(dateParts) < 2 {
+		log.Fatalf("Invalid date %s, should be in format m/d", *inputBirthday)
 	}
+	month, _ := strconv.Atoi(dateParts[0])
+	day, _ := strconv.Atoi(dateParts[1])
 
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)

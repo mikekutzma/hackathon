@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"net"
+	"os"
 
 	pb "github.com/mikekutzma/hackathon/cakebox/cakebox"
 	"google.golang.org/grpc"
@@ -12,12 +13,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	port = ":50051"
-)
-
 // Create global db variable
-var db *sql.DB
+var (
+	port = getEnv("PORT", "50051")
+	db   *sql.DB
+)
 
 // server is used to implement helloworld.GreeterServer.
 type server struct {
@@ -31,6 +31,15 @@ type comparableBirthday struct {
 
 type comparableUser struct {
 	Name string
+}
+
+// Helper function to get env variable with a default
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
 }
 
 // SayHello implements helloworld.GreeterServer
