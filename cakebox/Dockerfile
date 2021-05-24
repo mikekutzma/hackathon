@@ -19,14 +19,14 @@ RUN mkdir -p /cakebox/cakebox
 
 WORKDIR /cakebox
 
-COPY ./cakebox/*.go /cakebox/cakebox
-COPY ./birthday_server/server.go /cakebox
+COPY ./cakebox/*.go /cakebox/cakebox/
+COPY ./birthday_server/server.go /cakebox/
 
-COPY go.mod .
-COPY go.sum .
-COPY gendb.py .
-COPY birthdays.csv .
-COPY requirements.txt .
+COPY go.mod ./
+COPY go.sum ./
+COPY gendb.py ./
+COPY birthdays.csv ./
+COPY requirements.txt ./
 
 RUN python3 -m pip install --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --trusted-host pypi.org -r requirements.txt
 RUN python3 gendb.py
