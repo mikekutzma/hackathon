@@ -3,6 +3,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -79,6 +80,8 @@ func (s *server) UsersFromBirthday(in *pb.Birthday, stream pb.CakeBox_UsersFromB
 }
 
 func main() {
+	grpcEndpoint := fmt.Sprintf(":%s", port)
+	log.Printf("gRPC endpoint [%s]", grpcEndpoint)
 	// Listen on port
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
