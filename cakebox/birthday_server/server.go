@@ -82,8 +82,9 @@ func (s *server) UsersFromBirthday(in *pb.Birthday, stream pb.CakeBox_UsersFromB
 func main() {
 	grpcEndpoint := fmt.Sprintf(":%s", port)
 	log.Printf("gRPC endpoint [%s]", grpcEndpoint)
+
 	// Listen on port
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
